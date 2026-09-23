@@ -205,3 +205,43 @@ GitHub Actions 適合這個 V1，因為：
 但如果實際觀察後發現商品常在 1–2 分鐘內售罄，那 GitHub Actions 的 5 分鐘最低排程加上可能的執行延遲就不夠快。
 
 到時再把相同的 Python 程式搬到更適合高頻率執行的環境即可，不需要現在就把架構做複雜。
+
+
+## Discord 通知分級
+
+正式監控現在分成兩種通知：
+
+### 沒貨 / 心跳通知
+
+如果建立 Repository variable：
+
+`HEARTBEAT_ENABLED=true`
+
+那麼在本輪沒有任何商品補貨時，監控會送出一般訊息：
+
+```text
+🟢 JxJ Stock Watcher 正常運作
+
+Daydreamers Signed：sold_out
+Dreamchasers Signed：sold_out
+
+本訊息只是心跳確認，不會 @everyone。
+```
+
+這個功能主要用來確認 GitHub Actions、商品頁抓取和 Discord Webhook 都仍然正常。
+
+如果不想收到這類訊息，把 `HEARTBEAT_ENABLED` 移除或改成其他值即可。
+
+### 補貨通知
+
+只要任一商品從 `sold_out` 變成 `available`，會送出高優先通知：
+
+```text
+@everyone
+🚨 JxJ DREAMSCAPE 親簽版補貨！
+
+商品名稱
+商品網址
+```
+
+補貨通知會要求 Discord 解析 `@everyone` mention；實際是否通知所有成員仍受該 Discord 頻道 / Webhook 的 mention 權限控制。
