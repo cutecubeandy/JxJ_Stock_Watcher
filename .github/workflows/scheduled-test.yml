@@ -1,0 +1,15 @@
+name: Scheduled Test
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  scheduled-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show trigger
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+          date -u
