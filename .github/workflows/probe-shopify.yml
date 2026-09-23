@@ -1,0 +1,65 @@
+name: Probe Shopify checkout feasibility
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe-shopify.yml"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe product data and cart permalinks
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          products = [
+              ("Daydreamers", "https://seventeenshopus.com/products/jxj-1st-mini-album-dreamscape-daydreamers-ver-signed-ver"),
+              ("Dreamchasers", "https://seventeenshopus.com/products/jxj-1st-mini-album-dreamscape-dreamchasers-ver-signed-ver"),
+          ]
+
+          headers = {"User-Agent": "Mozilla/5.0"}
+
+          for name, url in products:
+              print(f"=== {name} ===")
+              for suffix in [".js", ".json"]:
+                  probe = url + suffix
+                  try:
+                      req = Request(probe, headers=headers)
+                      with urlopen(req, timeout=20) as r:
+                          body = r.read().decode("utf-8", "replace")
+                          print(suffix, "HTTP", r.status, "CT", r.headers.get("content-type"))
+                          try:
+                              data = json.loads(body)
+                          except Exception:
+                              print("not-json", body[:160].replace("\n"," "))
+                              continue
+                          obj = data.get("product", data)
+                          print("title:", obj.get("title"))
+                          print("handle:", obj.get("handle"))
+                          variants = obj.get("variants") or []
+                          print("variant_count:", len(variants))
+                          for v in variants:
+                              print("VARIANT", {
+                                  "id": v.get("id"),
+                                  "title": v.get("title"),
+                                  "available": v.get("available"),
+                                  "price": v.get("price"),
+                                  "sku": v.get("sku"),
+                              })
+                  except Exception as e:
+                      print(suffix, "ERROR", repr(e))
+
+              req = Request(url, headers=headers)
+              with urlopen(req, timeout=20) as r:
+                  html = r.read().decode("utf-8", "replace")
+              low = html.lower()
+              print("shopify_marker:", "shopify" in low)
+              print("shop_pay_marker:", "shop pay" in low or "shop_pay" in low)
+              print("apple_pay_marker:", "apple pay" in low or "apple_pay" in low)
+              print("dynamic_checkout_marker:", "shopify-payment-button" in low)
+          PY
