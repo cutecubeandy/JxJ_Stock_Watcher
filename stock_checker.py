@@ -155,7 +155,7 @@ def main() -> int:
     if restocked:
         send_restock_alert(restocked)
         print(f"Restock alert sent for {len(restocked)} product(s).")
-    elif os.environ.get("HEARTBEAT_ENABLED", "true").lower() == "true":
+    elif os.environ.get("HEARTBEAT_ENABLED", "").strip().lower() in ("", "true"):
         send_heartbeat(current)
         print("Heartbeat notification sent.")
 
