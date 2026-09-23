@@ -28,6 +28,7 @@ jobs:
       - name: Check stock
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          HEARTBEAT_ENABLED: ${{ vars.HEARTBEAT_ENABLED }}
         run: python3 stock_checker.py
 
       - name: Save stock state when it changes
