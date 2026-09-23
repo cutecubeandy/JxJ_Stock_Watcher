@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types:
+      - jxj-stock-check
 
 permissions:
   contents: write
@@ -14,6 +17,9 @@ jobs:
     timeout-minutes: 3
 
     steps:
+      - name: Show trigger
+        run: echo "Triggered by: ${{ github.event_name }}"
+
       - name: Check out repository
         uses: actions/checkout@v4
 
