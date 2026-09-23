@@ -55,13 +55,11 @@ def check_product(product: dict) -> str:
     page_text = fetch_page(product["url"])
     lower_text = page_text.lower()
 
-    # Safety check: if the expected product name disappears, do not guess.
     if product["marker"].lower() not in lower_text:
         raise RuntimeError(
             f'Unexpected page for {product["name"]}: product marker not found.'
         )
 
-    # The store currently renders this exact phrase for these sold-out products.
     if "sorry sold out" in lower_text:
         return "sold_out"
 
@@ -81,23 +79,21 @@ def save_state(state: dict) -> None:
     )
 
 
-def send_discord(restocked: list[dict]) -> None:
+def post_discord(content: str, mention_everyone: bool = False) -> None:
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook_url:
-        raise RuntimeError(
-            "A product is available, but DISCORD_WEBHOOK_URL is not configured."
-        )
+        raise RuntimeError("DISCORD_WEBHOOK_URL is not configured.")
 
-    lines = ["🚨 **JxJ DREAMSCAPE 親簽版補貨！**", ""]
-    for product in restocked:
-        lines.append(f'**{product["name"]}**')
-        lines.append(product["url"])
-        lines.append("")
+    payload = {
+        "content": content,
+        "allowed_mentions": {
+            "parse": ["everyone"] if mention_everyone else []
+        },
+    }
 
-    payload = json.dumps({"content": "\n".join(lines)}).encode("utf-8")
     request = Request(
         webhook_url,
-        data=payload,
+        data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
             "User-Agent": "jxj-stock-watcher/1.0",
@@ -115,6 +111,32 @@ def send_discord(restocked: list[dict]) -> None:
         raise RuntimeError(f"Discord notification failed: {exc}") from exc
 
 
+def send_restock_alert(restocked: list[dict]) -> None:
+    lines = [
+        "@everyone",
+        "🚨 **JxJ DREAMSCAPE 親簽版補貨！**",
+        "",
+    ]
+    for product in restocked:
+        lines.append(f'**{product["name"]}**')
+        lines.append(product["url"])
+        lines.append("")
+
+    post_discord("\n".join(lines), mention_everyone=True)
+
+
+def send_heartbeat(current: dict) -> None:
+    lines = [
+        "🟢 **JxJ Stock Watcher 正常運作**",
+        "",
+        f"Daydreamers Signed：**{current['daydreamers_signed']}**",
+        f"Dreamchasers Signed：**{current['dreamchasers_signed']}**",
+        "",
+        "本訊息只是心跳確認，不會 @everyone。",
+    ]
+    post_discord("\n".join(lines), mention_everyone=False)
+
+
 def main() -> int:
     previous = load_state()
     current = {}
@@ -130,10 +152,12 @@ def main() -> int:
         if status == "available" and previous.get(key) != "available"
     ]
 
-    # Notify before saving state. If Discord fails, the next run will try again.
     if restocked:
-        send_discord(restocked)
-        print(f"Discord notification sent for {len(restocked)} product(s).")
+        send_restock_alert(restocked)
+        print(f"Restock alert sent for {len(restocked)} product(s).")
+    elif os.environ.get("HEARTBEAT_ENABLED", "").lower() == "true":
+        send_heartbeat(current)
+        print("Heartbeat notification sent.")
 
     if current != previous:
         save_state(current)
