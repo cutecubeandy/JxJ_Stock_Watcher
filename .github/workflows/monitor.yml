@@ -14,10 +14,6 @@ permissions:
 
 jobs:
   check-stock:
-    # Manual runs and code/workflow changes are allowed for setup/testing.
-    # Scheduled runs stay disabled until MONITORING_ENABLED=true is added
-    # under Settings -> Secrets and variables -> Actions -> Variables.
-    if: github.event_name != 'schedule' || vars.MONITORING_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 3
 
