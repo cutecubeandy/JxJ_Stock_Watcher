@@ -2,6 +2,10 @@ name: Monitor JxJ signed stock
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "stock_checker.py"
+      - ".github/workflows/monitor.yml"
   schedule:
     - cron: "*/5 * * * *"
 
@@ -10,10 +14,10 @@ permissions:
 
 jobs:
   check-stock:
+    # Manual runs and code/workflow changes are allowed for setup/testing.
     # Scheduled runs stay disabled until MONITORING_ENABLED=true is added
     # under Settings -> Secrets and variables -> Actions -> Variables.
-    # Manual runs are always allowed for setup/testing.
-    if: github.event_name == 'workflow_dispatch' || vars.MONITORING_ENABLED == 'true'
+    if: github.event_name != 'schedule' || vars.MONITORING_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 3
 
