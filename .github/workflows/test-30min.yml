@@ -1,0 +1,83 @@
+name: 30-minute end-to-end test
+
+on:
+  push:
+    paths:
+      - ".github/workflows/test-30min.yml"
+
+jobs:
+  test:
+    if: github.event.head_commit.message == 'Start 30-minute end-to-end test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run six checks, five minutes apart
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import time
+          from datetime import datetime, timezone
+          from urllib.request import Request, urlopen
+
+          import stock_checker
+
+          webhook = os.environ["DISCORD_WEBHOOK_URL"]
+
+          for i in range(1, 7):
+              statuses = {}
+              for key, product in stock_checker.PRODUCTS.items():
+                  statuses[key] = stock_checker.check_product(product)
+
+              lines = [
+                  f"🧪 **JxJ Stock Watcher 端到端測試 {i}/6**",
+                  f"時間（UTC）：{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+                  "",
+                  f"Daydreamers Signed：**{statuses['daydreamers_signed']}**",
+                  f"Dreamchasers Signed：**{statuses['dreamchasers_signed']}**",
+                  "",
+                  "✅ 商品頁抓取、庫存判斷、GitHub Actions、Discord Webhook 均已走完本輪流程。",
+              ]
+
+              payload = json.dumps({"content": "\n".join(lines)}).encode("utf-8")
+              req = Request(
+                  webhook,
+                  data=payload,
+                  headers={
+                      "Content-Type": "application/json",
+                      "User-Agent": "jxj-stock-watcher/1.0",
+                  },
+                  method="POST",
+              )
+
+              with urlopen(req, timeout=15) as response:
+                  if response.status not in (200, 204):
+                      raise RuntimeError(f"Discord returned HTTP {response.status}")
+
+              print(f"Completed test {i}/6: {statuses}")
+
+              if i < 6:
+                  time.sleep(300)
+
+          final_payload = json.dumps({
+              "content": "🏁 **30 分鐘測試完成**\n6 次端到端檢查皆已執行完畢。"
+          }).encode("utf-8")
+          final_req = Request(
+              webhook,
+              data=final_payload,
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "jxj-stock-watcher/1.0",
+              },
+              method="POST",
+          )
+          with urlopen(final_req, timeout=15) as response:
+              if response.status not in (200, 204):
+                  raise RuntimeError(f"Discord returned HTTP {response.status}")
+          PY
