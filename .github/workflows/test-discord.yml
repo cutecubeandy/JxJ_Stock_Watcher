@@ -1,0 +1,37 @@
+name: Test Discord webhook
+
+on:
+  push:
+    paths:
+      - ".github/workflows/test-discord.yml"
+
+jobs:
+  test-discord:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Send test notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          url = os.environ["DISCORD_WEBHOOK_URL"]
+          payload = json.dumps({
+              "content": "✅ JxJ Stock Watcher 測試成功！\n之後如果 Daydreamers / Dreamchasers 親簽版補貨，我會在這裡通知。"
+          }).encode("utf-8")
+
+          req = Request(
+              url,
+              data=payload,
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+
+          with urlopen(req, timeout=15) as response:
+              if response.status not in (200, 204):
+                  raise RuntimeError(f"Discord returned HTTP {response.status}")
+          PY
