@@ -131,8 +131,6 @@ def send_heartbeat(current: dict) -> None:
         "",
         f"Daydreamers Signed：**{current['daydreamers_signed']}**",
         f"Dreamchasers Signed：**{current['dreamchasers_signed']}**",
-        "",
-        "本訊息只是心跳確認，不會 @everyone。",
     ]
     post_discord("\n".join(lines), mention_everyone=False)
 
