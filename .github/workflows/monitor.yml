@@ -1,4 +1,4 @@
-name: Monitor JxJ signed stock
+name: Validate JxJ signed stock
 
 on:
   workflow_dispatch:
@@ -6,8 +6,7 @@ on:
     paths:
       - "stock_checker.py"
       - ".github/workflows/monitor.yml"
-  schedule:
-    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+      - ".github/workflows/scheduled-monitor.yml"
 
 permissions:
   contents: write
