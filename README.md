@@ -134,7 +134,7 @@ Dreamchasers Signed：sold_out
 
 這個功能主要用來確認 GitHub Actions、商品頁抓取和 Discord Webhook 都仍然正常。
 
-如果不想收到這類訊息，把 `HEARTBEAT_ENABLED` 移除或改成其他值即可。
+如果不想收到這類訊息，在 Repository Variables 設定 `HEARTBEAT_ENABLED=false` 即可。
 
 ### 補貨通知
 
@@ -149,3 +149,11 @@ Dreamchasers Signed：sold_out
 ```
 
 補貨通知會要求 Discord 解析 `@everyone` mention；實際是否通知所有成員仍受該 Discord 頻道 / Webhook 的 mention 權限控制。
+
+
+## 目前正式設定
+
+- 排程：每 5 分鐘一次，使用每小時 2、7、12、17、22、27、32、37、42、47、52、57 分，避開整點高負載。
+- `MONITORING_ENABLED`：已不再需要。
+- `HEARTBEAT_ENABLED`：預設開啟；只有明確設為 `false` 才關閉。
+- `DISCORD_WEBHOOK_URL`：仍必須保存在 GitHub Secrets。
