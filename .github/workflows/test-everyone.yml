@@ -1,0 +1,40 @@
+name: One-time everyone mention test
+
+on:
+  push:
+    paths:
+      - ".github/workflows/test-everyone.yml"
+
+jobs:
+  test-everyone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Send @everyone test
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          payload = {
+              "content": "@everyone\n🚨 **JxJ Stock Watcher：@everyone 測試**\n這是一則單次測試訊息，用來確認補貨時可以成功提醒所有人。",
+              "allowed_mentions": {"parse": ["everyone"]},
+          }
+
+          req = Request(
+              os.environ["DISCORD_WEBHOOK_URL"],
+              data=json.dumps(payload).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "jxj-stock-watcher/1.0",
+              },
+              method="POST",
+          )
+
+          with urlopen(req, timeout=15) as response:
+              if response.status not in (200, 204):
+                  raise RuntimeError(f"Discord returned HTTP {response.status}")
+          PY
