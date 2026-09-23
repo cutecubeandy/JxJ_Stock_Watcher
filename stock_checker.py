@@ -138,6 +138,9 @@ def send_heartbeat(current: dict) -> None:
 def main() -> int:
     previous = load_state()
     current = {}
+    validation_only = (
+        os.environ.get("VALIDATION_ONLY", "").strip().lower() == "true"
+    )
 
     for key, product in PRODUCTS.items():
         status = check_product(product)
@@ -151,15 +154,27 @@ def main() -> int:
     ]
 
     if restocked:
-        send_restock_alert(restocked)
-        print(f"Restock alert sent for {len(restocked)} product(s).")
+        if validation_only:
+            print(
+                f"Validation only: restock alert suppressed for "
+                f"{len(restocked)} product(s)."
+            )
+        else:
+            send_restock_alert(restocked)
+            print(f"Restock alert sent for {len(restocked)} product(s).")
     elif os.environ.get("HEARTBEAT_ENABLED", "").strip().lower() in ("", "true"):
-        send_heartbeat(current)
-        print("Heartbeat notification sent.")
+        if validation_only:
+            print("Validation only: heartbeat suppressed.")
+        else:
+            send_heartbeat(current)
+            print("Heartbeat notification sent.")
 
     if current != previous:
-        save_state(current)
-        print("state.json updated.")
+        if validation_only:
+            print("Validation only: state.json update skipped.")
+        else:
+            save_state(current)
+            print("state.json updated.")
 
     return 0
 
