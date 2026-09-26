@@ -1,3 +1,7 @@
+> [!IMPORTANT]
+> **Retired on 2026-09-26:** The active JxJ stock monitor has been migrated successfully to the user's NAS.
+> GitHub Actions in this repository are intentionally disabled. The repository is preserved only for source/history/reference.
+
 # JxJ DREAMSCAPE 親簽版補貨監控器
 
 這是第一版（V1）的補貨監控程式，用來監控 SEVENTEEN US Official Store 首頁目前前兩個已售完的 JxJ `DREAMSCAPE` 親簽版本：
