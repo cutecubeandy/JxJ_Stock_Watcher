@@ -1,15 +1,12 @@
-name: Scheduled Test
+name: DISABLED - Scheduled Test
 
+# Retired on 2026-09-26. Preserved only as historical reference.
 on:
-  schedule:
-    - cron: "3/10 * * * *"
   workflow_dispatch:
 
 jobs:
-  scheduled-test:
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - name: Show trigger
-        run: |
-          echo "Triggered by: ${{ github.event_name }}"
-          date -u
+      - run: echo "This workflow is disabled."
