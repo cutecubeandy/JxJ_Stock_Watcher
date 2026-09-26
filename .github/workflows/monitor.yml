@@ -1,26 +1,16 @@
-name: Validate JxJ signed stock
+name: DISABLED - Validate JxJ signed stock
 
+# Retired on 2026-09-26 after the monitor was migrated successfully to NAS.
+# Kept for reference only. No automatic trigger remains.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "stock_checker.py"
-      - ".github/workflows/monitor.yml"
-      - ".github/workflows/scheduled-monitor.yml"
 
 permissions:
   contents: read
 
 jobs:
-  check-stock:
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 3
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Validate stock checker
-        env:
-          VALIDATION_ONLY: "true"
-        run: python3 stock_checker.py
+      - run: echo "This GitHub workflow has been retired. The active monitor now runs on NAS."
